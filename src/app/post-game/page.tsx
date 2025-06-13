@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,13 @@ import { Award, Gift, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 
 export default function PostGamePage() {
+    return (
+    <Suspense fallback={<div>Loading game results...</div>}>
+      <PostGameContent />
+    </Suspense>
+  );
+}
+function PostGameContent() {
   const searchParams = useSearchParams();
   const score = searchParams.get('score') || '0';
   const gameMode = searchParams.get('mode') || 'game';
