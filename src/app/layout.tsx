@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Snack Catcher AR',
+  title: 'Zimba Snack Catcher',
   description: 'Catch falling snacks in augmented reality!',
 };
 
