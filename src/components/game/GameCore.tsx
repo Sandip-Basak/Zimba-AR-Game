@@ -352,7 +352,7 @@ export default function GameCore({ mode }: GameCoreProps) {
             return null;
           }
 
-          if (newY > GAME_AREA_HEIGHT) {
+          if (newY > GAME_AREA_HEIGHT && snack.type !== 'bomb') {
             if (prev.gameMode === 'endless') newLives -= 1;
             newStreaks = 0;
             return null;

@@ -25,6 +25,18 @@ function PostGameContent() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background text-foreground">
       <Card className="w-full max-w-md shadow-xl text-center">
         <CardHeader>
+
+        <div className="flex flex-col items-center space-y-3 p-4 rounded-lg border-b border-border">
+              <Image 
+                src="/game-assets/logos/logo.png" 
+                alt="Promotional Offer" 
+                width={300} 
+                height={150}
+                data-ai-hint="discount coupon"
+                className="rounded-md"
+              />
+        </div>
+
           <div className="flex justify-center mb-4">
             <Award className="h-16 w-16 text-accent" />
           </div>
@@ -39,7 +51,7 @@ function PostGameContent() {
           
           <SocialShareButtons score={parseInt(score)} gameMode={gameMode} />
 
-          <div className="mt-6 pt-6 border-t border-border">
+          {/* <div className="mt-6 pt-6 border-t border-border">
             <h3 className="text-xl font-semibold mb-3 text-accent">Special Offer!</h3>
             <div className="flex flex-col items-center space-y-3 p-4 bg-muted/50 rounded-lg">
               <Image 
@@ -58,7 +70,7 @@ function PostGameContent() {
                 Claim Your Coupon
               </Button>
             </div>
-          </div>
+          </div> */}
         </CardContent>
         <CardFooter className="flex-col space-y-3">
           <Button asChild className="w-full text-lg py-6">

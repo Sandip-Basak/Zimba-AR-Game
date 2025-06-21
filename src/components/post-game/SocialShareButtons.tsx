@@ -11,7 +11,7 @@ interface SocialShareButtonsProps {
 
 export default function SocialShareButtons({ score, gameMode }: SocialShareButtonsProps) {
   const { toast } = useToast();
-  const shareText = `I scored ${score} in Snack Catcher AR (${gameMode} mode)! Can you beat my score? #SnackCatcherAR`;
+  const shareText = `I scored ${score} in Zimba Snack Catcher (${gameMode} mode)! Can you beat my score? #ZimbaSnackCatcher`;
 
   const handleShare = (platform: string) => {
     const url = encodeURIComponent(window.location.origin); // Or specific game URL
