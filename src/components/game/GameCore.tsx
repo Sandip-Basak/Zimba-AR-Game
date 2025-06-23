@@ -194,9 +194,9 @@ export default function GameCore({ mode }: GameCoreProps) {
           const fingerTip = handLandmarks[INDEX_FINGER_TIP_LANDMARK];
           if (fingerTip && videoRef.current) {
             // Use fingerTip.x directly as it represents the physical hand's horizontal position (0=left, 1=right)
-            // The video element is visually mirrored, but MediaPipe gives coordinates from the unmirrored feed.
+            // The video element is not mirrored, but MediaPipe gives coordinates from the unmirrored feed.
             // So, direct mapping provides intuitive control: physical hand right -> basket right.
-            let newBasketX = fingerTip.x * GAME_AREA_WIDTH - BASKET_WIDTH / 2;
+            let newBasketX = (1 - fingerTip.x) * GAME_AREA_WIDTH - BASKET_WIDTH / 2;
             newBasketX = Math.max(0, Math.min(newBasketX, GAME_AREA_WIDTH - BASKET_WIDTH));
             setGameState(prev => ({ ...prev, basketPosition: { ...prev.basketPosition, x: newBasketX } }));
           }
@@ -239,7 +239,7 @@ export default function GameCore({ mode }: GameCoreProps) {
             const handLandmarks = results.multiHandLandmarks[0];
             const fingerTip = handLandmarks[INDEX_FINGER_TIP_LANDMARK];
             if (fingerTip && videoRef.current) {
-              let newBasketX = fingerTip.x * GAME_AREA_WIDTH - BASKET_WIDTH / 2;
+              let newBasketX = (1 - fingerTip.x) * GAME_AREA_WIDTH - BASKET_WIDTH / 2;
               newBasketX = Math.max(0, Math.min(newBasketX, GAME_AREA_WIDTH - BASKET_WIDTH));
               setGameState(prev => ({ ...prev, basketPosition: { ...prev.basketPosition, x: newBasketX } }));
             }
@@ -349,9 +349,14 @@ export default function GameCore({ mode }: GameCoreProps) {
           ) {
             newScore += snack.points * (newStreaks > 1 ? newStreaks : 1);
             newStreaks += 1;
+
+            if (snack.type === 'bomb') {
+              newLives -= 1;
+              newStreaks = 0
+            }
+
             return null;
           }
-
           if (newY > GAME_AREA_HEIGHT && snack.type !== 'bomb') {
             if (prev.gameMode === 'endless') newLives -= 1;
             newStreaks = 0;
@@ -468,7 +473,7 @@ export default function GameCore({ mode }: GameCoreProps) {
       >
         <video
           ref={videoRef}
-          className="absolute inset-0 w-full h-full object-cover -z-10 transform scaleX-[-1]" 
+          className="absolute inset-0 w-full h-full object-cover -z-10 transform scale-x-[-1] "
           autoPlay
           playsInline 
           muted
