@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { GameMode, Snack, GameState } from '@/types';
+import type { GameMode, Snack, GameState, PointAnimation } from '@/types';
 import { SNACK_TYPES } from '@/types';
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -46,6 +46,7 @@ export default function GameCore({ mode }: GameCoreProps) {
     activeSnacks: [],
     basketPosition: { x: GAME_AREA_WIDTH / 2 - BASKET_WIDTH / 2, y: GAME_AREA_HEIGHT - BASKET_HEIGHT - 10 },
     gameMode: mode,
+ pointAnimations: [],
   });
   const [showTutorial, setShowTutorial] = useState(true);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -337,6 +338,7 @@ export default function GameCore({ mode }: GameCoreProps) {
         let newLives = prev.lives;
         let newStreaks = prev.streaks;
         let newTimeLeft = prev.timeLeft;
+ let newPointAnimations = prev.pointAnimations;
 
         const updatedSnacks = prev.activeSnacks.map(snack => {
           const newY = snack.y + INITIAL_SNACK_SPEED * (1 + prev.streaks * 0.1);
@@ -346,11 +348,21 @@ export default function GameCore({ mode }: GameCoreProps) {
             newY < prev.basketPosition.y + BASKET_HEIGHT &&
             snack.x + snack.width > prev.basketPosition.x &&
             snack.x < prev.basketPosition.x + BASKET_WIDTH
-          ) {
-            newScore += snack.points * (newStreaks > 1 ? newStreaks : 1);
+ ) {
+ const pointsGained = snack.points * (newStreaks > 1 ? newStreaks : 1);
+ newScore += pointsGained;
             newStreaks += 1;
 
+ newPointAnimations = [...newPointAnimations, {
+ id: crypto.randomUUID(),
+ x: snack.x + snack.width / 2,
+ y: snack.y + snack.height / 2,
+ points: pointsGained,
+ timestamp: Date.now(),
+ }];
+
             if (snack.type === 'bomb') {
+ newPointAnimations = [...newPointAnimations, { id: crypto.randomUUID(), x: snack.x + snack.width / 2, y: snack.y + snack.height / 2, points: -1, timestamp: Date.now() }];
               newLives -= 1;
               newStreaks = 0
             }
@@ -365,6 +377,12 @@ export default function GameCore({ mode }: GameCoreProps) {
 
           return { ...snack, y: newY };
         }).filter(Boolean) as Snack[];
+
+ // Remove old point animations
+ const now = Date.now();
+ newPointAnimations = newPointAnimations.filter(
+ (animation) => now - animation.timestamp < 1000 // Keep animations for 1 second
+ );
 
         if (prev.gameMode === 'classic') {
           newTimeLeft = Math.max(0, prev.timeLeft - GAME_LOOP_INTERVAL / 1000);
@@ -387,6 +405,7 @@ export default function GameCore({ mode }: GameCoreProps) {
           timeLeft: newTimeLeft,
           activeSnacks: updatedSnacks,
           gameStatus: newGameStatus,
+ pointAnimations: newPointAnimations,
         };
       });
     }, GAME_LOOP_INTERVAL);
@@ -508,6 +527,28 @@ export default function GameCore({ mode }: GameCoreProps) {
           </div>
         )}
 
+ {/* Point Animations */}
+        {gameState.pointAnimations.map(anim => (
+          <div
+            key={anim.id}
+            style={{
+              position: 'absolute',
+              left: anim.x,
+              top: anim.y,
+              transform: 'translate(-50%, -50%)', // Center the text
+              zIndex: 10,
+              color: anim.points > 0 ? 'green' : 'red',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              pointerEvents: 'none', // Prevent interaction
+              animation: 'fade-out 1s forwards',
+            }}
+ className="fade-out-animation"
+          >
+            {anim.points > 0 ? `+${anim.points}` : `${anim.points}`}
+          </div>
+ ))}
+
         {(gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused') && gameState.activeSnacks.map(snack => (
           <div
             key={snack.id}
@@ -559,6 +600,20 @@ export default function GameCore({ mode }: GameCoreProps) {
           </Alert>
         )}
       </div>
+ <style jsx>{`
+        @keyframes fade-out {
+          0% {
+            opacity: 1;
+ transform: translate(-50%, -50%) translateY(0px);
+          }
+          100% {
+            opacity: 0;
+ transform: translate(-50%, -50%) translateY(-20px); /* Float up slightly */
+          }
+        }
+ .fade-out-animation {
+ animation: fade-out 1s forwards;
+        }`}</style>
       {/* {(handsModel && hasCameraPermission === true && (gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused')) && (
         <div className="mt-2 text-center text-xs text-muted-foreground p-2 bg-card/70 rounded-md">
           <p>Hand tracking enabled. Move your index finger left/right to control the basket.</p>
