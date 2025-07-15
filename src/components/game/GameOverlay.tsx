@@ -28,7 +28,7 @@ export default function GameOverlay({
       <div className="bg-card/80 backdrop-blur-sm p-3 rounded-lg shadow-md">
         <div className="text-2xl font-bold">Score: {score}</div>
         {streaks > 1 && (
-          <div className="text-sm text-accent font-semibold flex items-center">
+          <div className="text-sm text-black font-semibold flex items-center">
             <Zap className="w-4 h-4 mr-1" /> {streaks}x Streak!
           </div>
         )}
