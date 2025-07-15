@@ -10,16 +10,16 @@ body {
   :root {
     --background: 34 78% 91%; /* Light Peach */
     --foreground: 0 0% 3.9%; /* Default Dark for text */
-    --card: 34 75% 95%; /* Slightly lighter peach for cards */
-    --card-foreground: 0 0% 3.9%;
+    --card: 45 100% 50%; /* Yellow for cards */
+    --card-foreground: 0 0% 0%;
     --popover: 34 75% 95%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 26 100% 66%; /* Vibrant Orange for buttons */
-    --primary-foreground: 0 0% 100%; /* White text on orange buttons */
+    --primary: 359 83% 47%; /* Red for buttons */
+    --primary-foreground: 0 0% 100%; /* White text on red buttons */
     --secondary: 34 70% 85%; /* Lighter peach/muted orange */
     --secondary-foreground: 26 80% 30%; /* Darker orange for text on secondary */
     --muted: 34 70% 88%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted-foreground: 0 0% 0%;
     --accent: 39 100% 50%; /* Yellow-orange for highlights */
     --accent-foreground: 0 0% 100%; /* White text on yellow-orange highlights */
     --destructive: 0 84.2% 60.2%;
@@ -49,8 +49,8 @@ body {
     --card-foreground: 34 78% 91%;
     --popover: 20 10% 15%;
     --popover-foreground: 34 78% 91%;
-    --primary: 26 100% 66%; /* Vibrant Orange */
-    --primary-foreground: 0 0% 10%; /* Dark text on orange */
+    --primary: 359 83% 47%; /* Red */
+    --primary-foreground: 0 0% 10%; /* Dark text on red */
     --secondary: 20 10% 20%;
     --secondary-foreground: 34 70% 85%;
     --muted: 20 10% 20%;

@@ -19,7 +19,7 @@ export default function WelcomePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h3 className="text-xl font-semibold mb-2 text-accent">How to Play:</h3>
+            <h3 className="text-xl font-semibold mb-2 text-primary">How to Play:</h3>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
               <li>Say cheese when the camera starts.</li>
               <li>Wave your hand like a snack ninja to move your virtual basket and catch the tasty treats raining down.</li>

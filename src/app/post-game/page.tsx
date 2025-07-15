@@ -29,17 +29,17 @@ function PostGameContent() {
         <div className="flex flex-col items-center space-y-3 p-4 rounded-lg border-b border-border">
               <Image 
                 src="/game-assets/logos/logo.png" 
-                alt="Promotional Offer" 
+                alt="Zimba Logo" 
                 width={300} 
                 height={150}
-                data-ai-hint="discount coupon"
+                data-ai-hint="Zimba logo"
                 className="rounded-md"
               />
         </div>
 
-          <div className="flex justify-center mb-4">
+          {/* <div className="flex justify-center mb-4">
             <Award className="h-16 w-16 text-accent" />
-          </div>
+          </div> */}
           <CardTitle className="text-4xl font-headline text-primary">Game Over!</CardTitle>
           <CardDescription className="text-lg">
             You played <span className="font-semibold">{gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} mode</span>.
@@ -79,7 +79,7 @@ function PostGameContent() {
               Play Again
             </Link>
           </Button>
-          <Button asChild variant="ghost" className="w-full">
+          <Button asChild variant="default" className="w-full">
             <Link href="/">Back to Home</Link>
           </Button>
         </CardFooter>
