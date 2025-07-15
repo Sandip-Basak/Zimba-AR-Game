@@ -46,9 +46,9 @@ export default function SocialShareButtons({ score, gameMode }: SocialShareButto
 
   return (
     <div className="flex justify-center space-x-3 mt-4">
-      <Button variant="outline" size="icon" onClick={() => handleShare('twitter')} aria-label="Share on Twitter">
+      {/* <Button variant="outline" size="icon" onClick={() => handleShare('twitter')} aria-label="Share on Twitter">
         <Twitter className="h-5 w-5 text-blue-400" />
-      </Button>
+      </Button> */}
       <Button variant="outline" size="icon" onClick={() => handleShare('facebook')} aria-label="Share on Facebook">
         <Facebook className="h-5 w-5 text-blue-600" />
       </Button>

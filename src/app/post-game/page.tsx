@@ -42,7 +42,8 @@ function PostGameContent() {
           </div> */}
           <CardTitle className="text-4xl font-headline text-primary">Game Over!</CardTitle>
           <CardDescription className="text-lg">
-            You played <span className="font-semibold">{gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} mode</span>.
+            Share your score to WIN exciting prizes!
+            {/* You played <span className="font-semibold">{gameMode.charAt(0).toUpperCase() + gameMode.slice(1)} mode</span>. */}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
