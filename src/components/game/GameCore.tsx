@@ -443,8 +443,9 @@ export default function GameCore({ mode }: GameCoreProps) {
       }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-headline text-primary">Welcome to {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode!</AlertDialogTitle>
-            <AlertDialogDescription className="text-left">
+            {/* <AlertDialogTitle className="font-headline text-primary">Welcome to {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode!</AlertDialogTitle> */}
+            <AlertDialogTitle className="font-headline text-primary text-center">Welcome to {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode!</AlertDialogTitle>
+            {/* <AlertDialogDescription className="text-left">
               {mode === 'classic' && "Catch as many snacks as you can in 60 seconds. Good luck!"}
               {mode === 'endless' && "Catch snacks and don't let them drop! You have 3 lives."}
               {mode === 'challenge' && "A special challenge awaits! (Details for challenge mode will appear here)."}
@@ -452,11 +453,28 @@ export default function GameCore({ mode }: GameCoreProps) {
               This game uses your camera for an Augmented Reality experience! Please allow camera access when prompted.
               <br /><br />
               If AR controls are enabled, move your index finger in front of the camera to control the basket. Catch snacks to score points and build streaks!
+            </AlertDialogDescription> */}
+            <AlertDialogDescription asChild>
+                <div className="text-center pt-4 space-y-4">
+                     <p>Move your hand in front of the camera to control the basket.</p>
+                     <div className="flex justify-center items-center">
+                       <Image 
+                         src="/swipe.gif" 
+                         alt="Hand swipe gesture tutorial"
+                         width={250}
+                         height={150}
+                         unoptimized // GIFs are not optimized by next/image by default
+                       />
+                     </div>
+                </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleTutorialSkip} className="bg-primary hover:bg-primary/90">
+            {/* <AlertDialogAction onClick={handleTutorialSkip} className="bg-primary hover:bg-primary/90">
               Start Game!
+            </AlertDialogAction> */}
+            <AlertDialogAction onClick={handleTutorialSkip} className="bg-primary hover:bg-primary/90 w-full">
+              Got it, Let's Play!
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
