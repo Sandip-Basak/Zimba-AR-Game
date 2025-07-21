@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
+import { Hand } from 'lucide-react';
 
 const MEDIAPIPE_HANDS_VERSION = '0.4.1675469240';
 const HANDS_SCRIPT_ID = 'mediapipe-hands-script';
@@ -46,7 +47,7 @@ export default function GameCore({ mode }: GameCoreProps) {
     activeSnacks: [],
     basketPosition: { x: GAME_AREA_WIDTH / 2 - BASKET_WIDTH / 2, y: GAME_AREA_HEIGHT - BASKET_HEIGHT - 10 },
     gameMode: mode,
- pointAnimations: [],
+    pointAnimations: [],
   });
   const [showTutorial, setShowTutorial] = useState(true);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -59,8 +60,7 @@ export default function GameCore({ mode }: GameCoreProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const animationFrameIdRef = useRef<number | null>(null);
 
-  const startGame = useCallback(() => {
-    console.log('[GameCore] startGame function called.');
+    const startGame = useCallback(() => {
     setGameState(prev => ({
       ...prev,
       score: 0,
@@ -72,45 +72,36 @@ export default function GameCore({ mode }: GameCoreProps) {
     }));
 
     if (hasCameraPermission === true && videoRef.current && videoRef.current.paused && videoRef.current.srcObject) {
-      console.log('[GameCore] In startGame: Camera permission true, video paused. Attempting to play.');
       videoRef.current.play().catch(err => {
-        console.error("[GameCore] In startGame: Failed to play existing video stream:", err);
         toast({ variant: 'destructive', title: 'Video Playback Error', description: `Could not resume video: ${err.message}.` });
       });
     }
-  }, [mode, toast, hasCameraPermission]);
+    }, [mode, hasCameraPermission, toast]);
 
-  useEffect(() => {
-    if (gameState.gameStatus === 'initial' && !showTutorial && hasCameraPermission !== null) {
-      console.log(`[GameCore] Conditions met to start game post-tutorial. Camera permission: ${hasCameraPermission}.`);
-      if (hasCameraPermission === true) {
-        startGame();
-      } else {
-        console.log('[GameCore] Camera permission not granted, game will not start with AR. Starting non-AR mode.');
-        setGameState(prev => ({ ...prev, gameStatus: 'playing' })); 
-      }
-    }
-  }, [hasCameraPermission, showTutorial, gameState.gameStatus, startGame]);
+    useEffect(() => {
+        if (gameState.gameStatus === 'initial' && !showTutorial && hasCameraPermission !== null) {
+            if (hasCameraPermission) {
+                startGame();
+            } else {
+                setGameState(prev => ({ ...prev, gameStatus: 'playing' })); 
+            }
+        }
+    }, [hasCameraPermission, showTutorial, gameState.gameStatus, startGame]);
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
     const handsModelInstanceForCleanup = handsModel;
 
     return () => {
-      console.log('[GameCore] General cleanup effect for video stream and Hands model running.');
       if (currentVideoRef && currentVideoRef.srcObject) {
         const stream = currentVideoRef.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
         if (currentVideoRef) {
           currentVideoRef.srcObject = null;
         }
-        console.log('[GameCore] Camera tracks stopped in general cleanup.');
       }
       if (handsModelInstanceForCleanup && typeof handsModelInstanceForCleanup.close === 'function') {
         handsModelInstanceForCleanup.close();
-        console.log('[GameCore] Hands model closed in general cleanup.');
-      } else if (handsModelInstanceForCleanup) {
-        console.log('[GameCore] Hands model instance existed for cleanup but no close method found or model was not a Hands instance.');
       }
       if (animationFrameIdRef.current) {
         cancelAnimationFrame(animationFrameIdRef.current);
@@ -120,10 +111,8 @@ export default function GameCore({ mode }: GameCoreProps) {
 
   useEffect(() => {
     if (!showTutorial && videoRef.current && hasCameraPermission === null) {
-      console.log('[GameCore] Tutorial dismissed, videoRef available. Attempting camera setup.');
       const setupCamera = async () => {
         if (!videoRef.current) {
-          console.error('[GameCore] Video ref became null during async setup in primary camera useEffect. Aborting.');
           setHasCameraPermission(false);
           toast({
             variant: 'destructive',
@@ -133,31 +122,24 @@ export default function GameCore({ mode }: GameCoreProps) {
           return;
         }
         try {
-          console.log('[GameCore] Attempting navigator.mediaDevices.getUserMedia (useEffect based).');
           const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-          console.log('[GameCore] getUserMedia successful (useEffect based).');
 
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
-              console.log('[GameCore] Video metadata loaded (useEffect based). Attempting to play.');
               videoRef.current?.play().catch(playError => {
-                console.error("[GameCore] Error playing video (useEffect based):", playError);
                 toast({ variant: 'destructive', title: 'Video Playback Error', description: `Could not start video: ${playError.message}.` });
               });
             };
-            videoRef.current.onerror = (videoEventError) => {
-              console.error("[GameCore] Video element error (useEffect based):", videoEventError);
+            videoRef.current.onerror = () => {
               toast({ variant: 'destructive', title: 'Video Element Error', description: 'The video element encountered an error.' });
             };
             setHasCameraPermission(true);
           } else {
-            console.warn("[GameCore] Video ref (videoRef.current) null when assigning stream (useEffect based), stopping tracks.");
             stream.getTracks().forEach(track => track.stop());
             setHasCameraPermission(false);
           }
         } catch (error: any) {
-          console.error('[GameCore] Error during getUserMedia (useEffect based):', error.name, error.message);
           setHasCameraPermission(false);
           toast({
             variant: 'destructive',
@@ -172,20 +154,18 @@ export default function GameCore({ mode }: GameCoreProps) {
 
   const initializeHands = useCallback(() => {
     if (typeof window === 'undefined') {
-      console.warn('[GameCore] Window object not defined. Cannot initialize Hands.');
       toast({ variant: 'destructive', title: 'Environment Error', description: 'Window object not found, cannot run hand tracking.' });
       setHandsScriptError(true);
       return;
     }
 
     if (window.Hands) {
-      console.log('[GameCore] window.Hands already exists. Proceeding with initialization.');
       const hands = new window.Hands({
         locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${MEDIAPIPE_HANDS_VERSION}/${file}`,
       });
       hands.setOptions({
         maxNumHands: 1,
-        modelComplexity: 1,
+        modelComplexity: 0, // Lowered for better performance on mobile
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5,
       });
@@ -194,9 +174,6 @@ export default function GameCore({ mode }: GameCoreProps) {
           const handLandmarks = results.multiHandLandmarks[0];
           const fingerTip = handLandmarks[INDEX_FINGER_TIP_LANDMARK];
           if (fingerTip && videoRef.current) {
-            // Use fingerTip.x directly as it represents the physical hand's horizontal position (0=left, 1=right)
-            // The video element is not mirrored, but MediaPipe gives coordinates from the unmirrored feed.
-            // So, direct mapping provides intuitive control: physical hand right -> basket right.
             let newBasketX = (1 - fingerTip.x) * GAME_AREA_WIDTH - BASKET_WIDTH / 2;
             newBasketX = Math.max(0, Math.min(newBasketX, GAME_AREA_WIDTH - BASKET_WIDTH));
             setGameState(prev => ({ ...prev, basketPosition: { ...prev.basketPosition, x: newBasketX } }));
@@ -205,33 +182,28 @@ export default function GameCore({ mode }: GameCoreProps) {
       });
       setHandsModel(hands);
       setHandsScriptLoaded(true);
-      console.log('[GameCore] Hands model initialized using pre-existing window.Hands.');
       return;
     }
 
     if (document.getElementById(HANDS_SCRIPT_ID)) {
-      console.log('[GameCore] MediaPipe Hands script tag already exists in DOM. Waiting for it to load/error.');
       return;
     }
 
-    console.log('[GameCore] Dynamically loading MediaPipe Hands script from CDN...');
     const script = document.createElement('script');
     script.id = HANDS_SCRIPT_ID;
     script.src = `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${MEDIAPIPE_HANDS_VERSION}/hands.js`;
     script.async = true;
 
     script.onload = () => {
-      console.log('[GameCore] MediaPipe Hands script loaded successfully from CDN.');
       setHandsScriptLoaded(true);
       setHandsScriptError(false);
       if (window.Hands) {
-        console.log('[GameCore] window.Hands found after dynamic script load. Initializing Hands model...');
         const handsInstance = new window.Hands({
           locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${MEDIAPIPE_HANDS_VERSION}/${file}`,
         });
         handsInstance.setOptions({
           maxNumHands: 1,
-          modelComplexity: 1,
+          modelComplexity: 0, // Lowered for better performance on mobile
           minDetectionConfidence: 0.5,
           minTrackingConfidence: 0.5,
         });
@@ -247,16 +219,13 @@ export default function GameCore({ mode }: GameCoreProps) {
           }
         });
         setHandsModel(handsInstance);
-        console.log('[GameCore] Hands model initialized and set after dynamic load.');
       } else {
-        console.error('[GameCore] window.Hands NOT found even after dynamic script load. This is unexpected.');
         toast({ variant: 'destructive', title: 'Hand Tracking Critical Error', description: 'Failed to initialize hand tracking library (post-load).' });
         setHandsScriptError(true);
       }
     };
 
     script.onerror = () => {
-      console.error('[GameCore] Failed to load MediaPipe Hands script from CDN.');
       toast({ variant: 'destructive', title: 'Hand Tracking Load Error', description: 'Could not load the hand tracking library script.' });
       setHandsScriptError(true);
       setHandsScriptLoaded(false);
@@ -267,17 +236,9 @@ export default function GameCore({ mode }: GameCoreProps) {
 
   useEffect(() => {
     if (hasCameraPermission === true && !handsModel && !handsScriptLoaded && !handsScriptError) {
-      console.log('[GameCore] Camera permission is true, handsModel not set, script not loaded/errored. Calling initializeHands (to load script).');
       initializeHands();
     } else if (hasCameraPermission === true && !handsModel && handsScriptLoaded && window.Hands) {
-      console.log('[GameCore] Script loaded, window.Hands available, but model not set. Re-calling initializeHands to set up model.');
       initializeHands();
-    } else if (hasCameraPermission !== true) {
-      console.log('[GameCore] Camera permission not true, not initializing Hands. Current status:', hasCameraPermission);
-    } else if (handsModel) {
-      console.log('[GameCore] Hands model already exists or script has loaded it, not re-initializing script load.');
-    } else if (handsScriptError) {
-      console.log('[GameCore] Hands script encountered an error, not attempting further initialization.');
     }
   }, [hasCameraPermission, handsModel, initializeHands, handsScriptLoaded, handsScriptError]);
 
@@ -298,11 +259,9 @@ export default function GameCore({ mode }: GameCoreProps) {
 
   useEffect(() => {
     if (gameState.gameStatus === 'playing' && handsModel && videoRef.current && hasCameraPermission === true) {
-      console.log("[GameCore] Starting hand tracking loop (processVideoFrame).");
       animationFrameIdRef.current = requestAnimationFrame(processVideoFrame);
     } else {
       if (animationFrameIdRef.current) {
-        console.log("[GameCore] Stopping hand tracking loop (processVideoFrame). Status:", gameState.gameStatus, "HandsModel:", !!handsModel, "Perm:", hasCameraPermission);
         cancelAnimationFrame(animationFrameIdRef.current);
         animationFrameIdRef.current = null;
       }
@@ -338,7 +297,7 @@ export default function GameCore({ mode }: GameCoreProps) {
         let newLives = prev.lives;
         let newStreaks = prev.streaks;
         let newTimeLeft = prev.timeLeft;
- let newPointAnimations = prev.pointAnimations;
+        let newPointAnimations = prev.pointAnimations;
 
         const updatedSnacks = prev.activeSnacks.map(snack => {
           const newY = snack.y + INITIAL_SNACK_SPEED * (1 + prev.streaks * 0.1);
@@ -348,21 +307,21 @@ export default function GameCore({ mode }: GameCoreProps) {
             newY < prev.basketPosition.y + BASKET_HEIGHT &&
             snack.x + snack.width > prev.basketPosition.x &&
             snack.x < prev.basketPosition.x + BASKET_WIDTH
- ) {
- const pointsGained = snack.points * (newStreaks > 1 ? newStreaks : 1);
- newScore += pointsGained;
+          ) {
+            const pointsGained = snack.points * (newStreaks > 1 ? newStreaks : 1);
+            newScore += pointsGained;
             newStreaks += 1;
 
- newPointAnimations = [...newPointAnimations, {
- id: crypto.randomUUID(),
- x: snack.x + snack.width / 2,
- y: snack.y + snack.height / 2,
- points: pointsGained,
- timestamp: Date.now(),
- }];
+            newPointAnimations = [...newPointAnimations, {
+              id: crypto.randomUUID(),
+              x: snack.x + snack.width / 2,
+              y: snack.y + snack.height / 2,
+              points: pointsGained,
+              timestamp: Date.now(),
+            }];
 
             if (snack.type === 'bomb') {
- newPointAnimations = [...newPointAnimations, { id: crypto.randomUUID(), x: snack.x + snack.width / 2, y: snack.y + snack.height / 2, points: -1, timestamp: Date.now() }];
+              newPointAnimations = [...newPointAnimations, { id: crypto.randomUUID(), x: snack.x + snack.width / 2, y: snack.y + snack.height / 2, points: -1, timestamp: Date.now() }];
               newLives -= 1;
               newStreaks = 0
             }
@@ -378,11 +337,11 @@ export default function GameCore({ mode }: GameCoreProps) {
           return { ...snack, y: newY };
         }).filter(Boolean) as Snack[];
 
- // Remove old point animations
- const now = Date.now();
- newPointAnimations = newPointAnimations.filter(
- (animation) => now - animation.timestamp < 1000 // Keep animations for 1 second
- );
+        // Remove old point animations
+        const now = Date.now();
+        newPointAnimations = newPointAnimations.filter(
+          (animation) => now - animation.timestamp < 1000 // Keep animations for 1 second
+        );
 
         if (prev.gameMode === 'classic') {
           newTimeLeft = Math.max(0, prev.timeLeft - GAME_LOOP_INTERVAL / 1000);
@@ -405,7 +364,7 @@ export default function GameCore({ mode }: GameCoreProps) {
           timeLeft: newTimeLeft,
           activeSnacks: updatedSnacks,
           gameStatus: newGameStatus,
- pointAnimations: newPointAnimations,
+          pointAnimations: newPointAnimations,
         };
       });
     }, GAME_LOOP_INTERVAL);
@@ -427,7 +386,6 @@ export default function GameCore({ mode }: GameCoreProps) {
     setGameState(prev => {
       const newGameStatus = prev.gameStatus === 'playing' ? 'paused' : 'playing';
       if (newGameStatus === 'playing' && videoRef.current && videoRef.current.paused && videoRef.current.srcObject) {
-        console.log('[GameCore] Resuming game from pause, attempting to play video.');
         videoRef.current.play().catch(err => console.error("Error playing video on resume from pause:", err));
       }
       return { ...prev, gameStatus: newGameStatus };
@@ -443,17 +401,7 @@ export default function GameCore({ mode }: GameCoreProps) {
       }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            {/* <AlertDialogTitle className="font-headline text-primary">Welcome to {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode!</AlertDialogTitle> */}
-            <AlertDialogTitle className="font-headline text-primary text-center">Welcome to {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode!</AlertDialogTitle>
-            {/* <AlertDialogDescription className="text-left">
-              {mode === 'classic' && "Catch as many snacks as you can in 60 seconds. Good luck!"}
-              {mode === 'endless' && "Catch snacks and don't let them drop! You have 3 lives."}
-              {mode === 'challenge' && "A special challenge awaits! (Details for challenge mode will appear here)."}
-              <br /><br />
-              This game uses your camera for an Augmented Reality experience! Please allow camera access when prompted.
-              <br /><br />
-              If AR controls are enabled, move your index finger in front of the camera to control the basket. Catch snacks to score points and build streaks!
-            </AlertDialogDescription> */}
+            <AlertDialogTitle className="font-headline text-primary text-center">How to Play</AlertDialogTitle>
             <AlertDialogDescription asChild>
                 <div className="text-center pt-4 space-y-4">
                      <p>Move your hand in front of the camera to control the basket.</p>
@@ -470,9 +418,6 @@ export default function GameCore({ mode }: GameCoreProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            {/* <AlertDialogAction onClick={handleTutorialSkip} className="bg-primary hover:bg-primary/90">
-              Start Game!
-            </AlertDialogAction> */}
             <AlertDialogAction onClick={handleTutorialSkip} className="bg-primary hover:bg-primary/90 w-full">
               Got it, Let's Play!
             </AlertDialogAction>
@@ -484,10 +429,6 @@ export default function GameCore({ mode }: GameCoreProps) {
 
   if (gameState.gameStatus === 'gameOver') {
     return <div className="flex items-center justify-center h-screen text-2xl font-bold">Processing Game Over...</div>;
-  }
-
-  if (typeof window !== 'undefined') {
-    console.log('[GameCore] Component rendering. CamPerm:', hasCameraPermission, 'GameStatus:', gameState.gameStatus, 'Tutorial:', showTutorial, 'HandsModelSet:', !!handsModel, 'ScriptLoaded:', handsScriptLoaded, 'ScriptError:', handsScriptError);
   }
 
   return (
@@ -515,8 +456,6 @@ export default function GameCore({ mode }: GameCoreProps) {
           playsInline 
           muted
           data-ai-hint="camera feed background"
-          onPlay={() => console.log("[GameCore] Video element onPlay event triggered.")}
-          onLoadedData={() => console.log("[GameCore] Video element onLoadedData event triggered.")}
         />
 
         {hasCameraPermission === false && gameState.gameStatus !== 'initial' && (
@@ -545,7 +484,7 @@ export default function GameCore({ mode }: GameCoreProps) {
           </div>
         )}
 
- {/* Point Animations */}
+        {/* Point Animations */}
         {gameState.pointAnimations.map(anim => (
           <div
             key={anim.id}
@@ -553,19 +492,19 @@ export default function GameCore({ mode }: GameCoreProps) {
               position: 'absolute',
               left: anim.x,
               top: anim.y,
-              transform: 'translate(-50%, -50%)', // Center the text
+              transform: 'translate(-50%, -50%)',
               zIndex: 10,
               color: anim.points > 0 ? 'green' : 'red',
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              pointerEvents: 'none', // Prevent interaction
+              pointerEvents: 'none',
               animation: 'fade-out 1s forwards',
             }}
- className="fade-out-animation"
+            className="fade-out-animation"
           >
             {anim.points > 0 ? `+${anim.points}` : `${anim.points}`}
           </div>
- ))}
+        ))}
 
         {(gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused') && gameState.activeSnacks.map(snack => (
           <div
@@ -618,26 +557,46 @@ export default function GameCore({ mode }: GameCoreProps) {
           </Alert>
         )}
       </div>
- <style jsx>{`
+      <style jsx>{`
+        .phone-screen {
+          width: 150px;
+          height: 250px;
+          background-color: #1a1a1a;
+          border-radius: 20px;
+          border: 5px solid #444;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        @keyframes move-hand {
+          0%, 100% {
+            transform: translateX(-40px) rotate(-15deg);
+          }
+          50% {
+            transform: translateX(40px) rotate(15deg);
+          }
+        }
+        
+        .animate-move-hand {
+          animation: move-hand 2s ease-in-out infinite;
+        }
+
         @keyframes fade-out {
           0% {
             opacity: 1;
- transform: translate(-50%, -50%) translateY(0px);
+            transform: translate(-50%, -50%) translateY(0px);
           }
           100% {
             opacity: 0;
- transform: translate(-50%, -50%) translateY(-20px); /* Float up slightly */
+            transform: translate(-50%, -50%) translateY(-20px);
           }
         }
- .fade-out-animation {
- animation: fade-out 1s forwards;
-        }`}</style>
-      {/* {(handsModel && hasCameraPermission === true && (gameState.gameStatus === 'playing' || gameState.gameStatus === 'paused')) && (
-        <div className="mt-2 text-center text-xs text-muted-foreground p-2 bg-card/70 rounded-md">
-          <p>Hand tracking enabled. Move your index finger left/right to control the basket.</p>
-          <p>Ensure your hand is well-lit and visible to the camera.</p>
-        </div>
-      )} */}
+        .fade-out-animation {
+          animation: fade-out 1s forwards;
+        }
+      `}</style>
+      
       {(!handsModel && hasCameraPermission === true && !handsScriptError && !showTutorial && gameState.gameStatus !== 'initial') && (
         <div className="mt-2 text-center text-xs text-muted-foreground p-2 bg-card/70 rounded-md">
           <p>
