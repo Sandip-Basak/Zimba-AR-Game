@@ -42,7 +42,7 @@ export default function WelcomePage() {
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Allenby Food and Beverages Pvt. Ltd.</p>
         <p>All rights reserved.</p>
-        <p>Powered by <a href="https://ads.trafficgrid.in/" className="no-underline" target="_blank">Traffic Grid</a></p>
+        <p>Powered by <a href="https://qubitone.in/" className="no-underline" target="_blank">QubitOne</a></p>
       </footer>
     </div>
   );
